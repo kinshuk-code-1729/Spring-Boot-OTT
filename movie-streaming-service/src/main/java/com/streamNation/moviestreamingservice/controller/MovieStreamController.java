@@ -1,5 +1,6 @@
 package com.streamNation.moviestreamingservice.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -10,11 +11,17 @@ import org.springframework.web.bind.annotation.RestController;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @RestController
 public class MovieStreamController {
 
+    public static final Logger log = Logger.getLogger(MovieStreamController.class.getName());
     public static final String VIDEO_DIRECTORY = "F:\\Stream\\";
+
+    @Autowired
+    private MovieCatalogService movieCatalogService;
 
     @GetMapping("/stream/{videoPath}")
     public ResponseEntity<InputStreamResource>streamVideo(@PathVariable String videoPath) throws FileNotFoundException {
@@ -28,5 +35,12 @@ public class MovieStreamController {
         else{
             return ResponseEntity.notFound().build();
         }
+    }
+
+    @GetMapping("/stream/with-id/{movieInfoId}")
+    public ResponseEntity<InputStreamResource>streamVideoById(@PathVariable Long movieInfoId) throws FileNotFoundException {
+        String moviePath = movieCatalogService.getMoviePath(movieInfoId);
+        log.log(Level.INFO, "Resloved movie path = {0}", moviePath);
+        return streamVideo(moviePath);
     }
 }
