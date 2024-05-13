@@ -3,10 +3,7 @@ package com.streamNation.moviecatalogservice.controller;
 import com.streamNation.moviecatalogservice.model.MovieInfo;
 import com.streamNation.moviecatalogservice.model.MovieInfoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -24,5 +21,11 @@ public class MovieInfoController {
     @GetMapping("/movie-info/list")
     public List<MovieInfo> getAll(){
         return repository.findAll();
+    }
+
+    @GetMapping("/movie-info/find-path-by-id/{movieInfoId}")
+    public String findPathById(@PathVariable Long movieInfoId){
+        var videoInfoOptional = repository.findById(movieInfoId);
+        return videoInfoOptional.map(movieInfo -> movieInfo.getPath()).orElse(null);
     }
 }
