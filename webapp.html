@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video List</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            max-width: 1200px;
+            width: 100%;
+        }
+        .card {
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: transform 0.2s;
+            display: flex;
+            flex-direction: column;
+        }
+        .card:hover {
+            transform: scale(1.05);
+        }
+        .card h2 {
+            margin: 0;
+            padding: 16px;
+            background-color: #ec9729;
+            color: #fff;
+            font-size: 18px;
+        }
+        .card video {
+            width: 100%;
+            height: auto;
+        }
+        .card p {
+            margin: 0;
+            padding: 16px;
+            background-color: #f0f2f5;
+            color: #333;
+            font-size: 14px;
+        }
+        @media (max-width: 900px) {
+            .container {
+                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            }
+        }
+        @media (max-width: 600px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container" id="videoContainer"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            fetch('http://localhost:8080/movie-info/list')
+                .then(response => response.json())
+                .then(data => {
+                    const container = document.getElementById('videoContainer');
+                    data.forEach(video => {
+                        const card = document.createElement('div');
+                        card.className = 'card';
+
+                        const title = document.createElement('h2');
+                        title.textContent = video.name;
+
+                        const videoElement = document.createElement('video');
+                        videoElement.setAttribute('controls', true);
+                        videoElement.setAttribute('preload', 'metadata');
+                        const source = document.createElement('source');
+                        source.src = `http://localhost:8080/stream/with-id/${video.id}`;
+                        source.type = 'video/mp4';
+                        videoElement.appendChild(source);
+
+                        videoElement.addEventListener('loadedmetadata', () => {
+                            videoElement.currentTime = 2;
+                        });
+
+                        videoElement.addEventListener('seeked', () => {
+                            const canvas = document.createElement('canvas');
+                            canvas.width = videoElement.videoWidth;
+                            canvas.height = videoElement.videoHeight;
+                            const context = canvas.getContext('2d');
+                            context.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+                            const thumbnailURL = canvas.toDataURL();
+                            videoElement.setAttribute('poster', thumbnailURL);
+                            videoElement.currentTime = 0; // Reset the current time
+                        });
+
+                        const description = document.createElement('p');
+                        description.textContent = video.description;
+
+                        card.appendChild(title);
+                        card.appendChild(videoElement);
+                        card.appendChild(description);
+
+                        container.appendChild(card);
+                    });
+                })
+                .catch(error => console.error('Error fetching video list:', error));
+        });
+    </script>
+</body>
+</html>
